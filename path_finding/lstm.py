@@ -17,7 +17,7 @@ class CustomLSTMModel(nn.Module):
         self.lstm_context = nn.LSTM(input_size=num_context_features, hidden_size=lstm_hidden_size)
 
         # Fully connected layer for combining outputs
-        self.fc = nn.Linear(lstm_hidden_size * 2, 1)  # Multiply by 2 as we concatenate outputs
+        self.fc = nn.Linear(lstm_hidden_size * 2, 2)  # Multiply by 2 as we concatenate outputs
 
     def forward(self, x_time, x_context):
         # Process time-based features through LSTM

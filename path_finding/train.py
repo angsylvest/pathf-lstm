@@ -24,17 +24,13 @@ def train(sequence_length):
 
     # Extract features and target variable
     x_time = merged_df[['current_position_x', 'current_position_y', 'goal_position_x', 'goal_position_y']].values
-    x_context = merged_df[['env_representation']].values
-    y = merged_df[['next_position_x', 'next_position_y']].values
-
-    # Convert string representation to nested list
-    merged_df['env_representation'] = merged_df['env_representation'].apply(lambda x: np.array(eval(x)))
-
-    # Convert nested list to numpy array
-    x_context = np.array(merged_df['env_representation'].tolist())
-
+    
+    # Convert string representation to nested list of tuples
+    merged_df['env_representation'] = merged_df['env_representation'].apply(lambda x: eval(x))
+    x_context_array = np.array(merged_df['env_representation'].tolist())
+    
     # Flatten the nested list to a single feature vector
-    x_context_flat = x_context.reshape(x_context.shape[0], -1)
+    x_context_flat = x_context_array.reshape(x_context_array.shape[0], -1)
 
     # Normalize features using MinMaxScaler
     scaler_x_time = MinMaxScaler()
@@ -43,6 +39,9 @@ def train(sequence_length):
 
     x_time_scaled = scaler_x_time.fit_transform(x_time)
     x_context_scaled = scaler_x_context.fit_transform(x_context_flat)
+    
+    # Extract target variable
+    y = merged_df[['next_position_x', 'next_position_y']].values
     y_scaled = scaler_y.fit_transform(y)
 
     # Convert to PyTorch tensors
@@ -54,6 +53,8 @@ def train(sequence_length):
     x_time_tensor = x_time_tensor.view(-1, sequence_length, x_time_tensor.shape[1])
     x_context_tensor = x_context_tensor.view(-1, sequence_length, x_context_tensor.shape[1])
     y_tensor = y_tensor[sequence_length - 1:]
+
+    print(f'features sizes: {x_time_tensor.shape[2]} {x_context_tensor.shape[2]}')
 
     # Initialize model
     model = CustomLSTMModel(num_time_features=x_time_tensor.shape[2], num_context_features=x_context_tensor.shape[2], lstm_hidden_size=50)
