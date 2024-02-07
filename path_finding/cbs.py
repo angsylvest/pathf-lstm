@@ -173,7 +173,7 @@ def add_to_dataset(env, paths, goal_positions): # env is initially just edge rep
             x_time_row = {"time_stamp": i,"agent_id": agent,"current_position_x": current_position_x,"current_position_y": current_position_y,"goal_position_x": goal_position_x ,"goal_position_y": goal_position_y}
             y_train_row = {"time_stamp": i,"agent_id": agent, "next_position_x": next_position_x,"next_position_y": next_position_y}
 
-            env_representation = update_env(5, 5, [path[i] for path in paths.values()])
+            env_representation = update_env(5, 5, [path[i] for path in paths.values()], [goal_position for goal_position in goal_positions.values()])
 
             # append to dataset 
 
