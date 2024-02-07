@@ -137,35 +137,25 @@ def cbs(graph, agents, goal_positions) -> Union[Dict[str, List[Tuple[int, int]]]
 
     return paths if conflict_free else None
 
-graph = generate_edges_dict(5, 5)
 
-initial_positions = {0: (0, 0), 1: (1, 0)}  # Adjust initial positions as needed
-goal_positions = {0: (2, 1), 1: (2, 2)}  # Adjust goal positions as needed
-
-agents = {0: initial_positions[0], 1: initial_positions[1]}
-
-# path1 = find_path(graph, initial_positions[0], goal_positions[0], [], [])
-# print(path1)
-# path2 = find_path(graph, initial_positions[1], goal_positions[1], [], [])
-# print(path2)
-print('Output after running CBS')
-paths = cbs(graph, agents, goal_positions)
-print(paths)
-
-def update_env(num_rows, num_cols, occupied_pos): 
-    # Initialize an empty grid with zeros
-    grid = [[0] * num_cols for _ in range(num_rows)]
+def update_env(num_rows, num_cols, agent_positions, goal_positions): 
+    # Initialize an empty grid with tuples representing each position
+    grid = [[(0, 0, 0, 0)] * num_cols for _ in range(num_rows)]
     
-    # Set the value to 1 at the occupied positions
-    for pos in occupied_pos:
-        row, col = pos
-        grid[row][col] = 1
+    # Update the grid with current positions and goal positions
+    for i, (agent_pos, goal_pos) in enumerate(zip(agent_positions, goal_positions)):
+        row, col = agent_pos
+        goal_row, goal_col = goal_pos
+        
+        # Update the grid with the agent's current position and goal position
+        grid[row][col] = (row, col, goal_row, goal_col)
     
     return grid
 
+
 def add_to_dataset(env, paths, goal_positions): # env is initially just edge representation 
     # will be initially just one env but will create relevant rows for each agent to be added to dataset
-    env_representation = update_env(5, 5, [path[0] for path in paths.values()])
+    env_representation = update_env(5, 5, [path[0] for path in paths.values()], [goal_position for goal_position in goal_positions.values()])
 
     max_length = max(len(value_list) for value_list in paths.values())
 
@@ -187,5 +177,18 @@ def add_to_dataset(env, paths, goal_positions): # env is initially just edge rep
 
             # append to dataset 
 
+graph = generate_edges_dict(5, 5)
 
+initial_positions = {0: (0, 0), 1: (1, 0)}  # Adjust initial positions as needed
+goal_positions = {0: (2, 1), 1: (2, 2)}  # Adjust goal positions as needed
+
+agents = {0: initial_positions[0], 1: initial_positions[1]}
+
+# path1 = find_path(graph, initial_positions[0], goal_positions[0], [], [])
+# print(path1)
+# path2 = find_path(graph, initial_positions[1], goal_positions[1], [], [])
+# print(path2)
+print('Output after running CBS')
+paths = cbs(graph, agents, goal_positions)
+print(paths)
 
