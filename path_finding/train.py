@@ -79,8 +79,6 @@ def train(sequence_length):
         output_x = outputs[:, 0].long()  # Round to nearest integer
         output_y = outputs[:, 1].long()
 
-        # print(f'outputs x: {output_x} and outputs y: {output_y}')
-
         # Concatenate outputs to form grid indices
         grid_indices = output_x * 5 + output_y  # Adjust as per your grid size
         # print(grid_indices)
