@@ -60,7 +60,8 @@ def train(sequence_length):
     model = CustomLSTMModel(num_time_features=x_time_tensor.shape[2], num_context_features=x_context_tensor.shape[2], lstm_hidden_size=50)
 
     # Define loss function and optimizer
-    criterion = nn.MSELoss()
+    # criterion = nn.MSELoss()
+    criterion = nn.CrossEntropyLoss()  # Use Cross-Entropy loss for classification
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Number of epochs
@@ -74,7 +75,18 @@ def train(sequence_length):
         # Forward pass
         outputs = model(x_time_tensor, x_context_tensor)
 
-        loss = criterion(outputs, y_tensor.view(-1, 2))  # Assuming y_tensor is a 2D tensor with (next_position_x, next_position_y)
+        # Convert outputs to grid indices (assuming grid starts from 0)
+        output_x = outputs[:, 0].long()  # Round to nearest integer
+        output_y = outputs[:, 1].long()
+
+        # print(f'outputs x: {output_x} and outputs y: {output_y}')
+
+        # Concatenate outputs to form grid indices
+        grid_indices = output_x * 5 + output_y  # Adjust as per your grid size
+        # print(grid_indices)
+
+        # loss = criterion(outputs, y_tensor.view(-1, 2))  # Assuming y_tensor is a 2D tensor with (next_position_x, next_position_y)
+        loss = criterion(outputs, grid_indices)
 
         # Backward pass and optimization
         optimizer.zero_grad()

@@ -6,6 +6,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+# Define custom activation function to round the outputs to the nearest integer
+def round_to_grid(x):
+    return torch.round(x)
+
 class CustomLSTMModel(nn.Module):
     def __init__(self, num_time_features, num_context_features, lstm_hidden_size):
         super(CustomLSTMModel, self).__init__()
@@ -31,5 +35,6 @@ class CustomLSTMModel(nn.Module):
 
         # Fully connected layer for final output
         output = self.fc(merged)
+        output = round_to_grid(output)
 
         return output
