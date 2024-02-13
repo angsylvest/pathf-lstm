@@ -47,7 +47,7 @@ x_time_tensor = torch.tensor(x_time_scaled, dtype=torch.float32)
 x_context_tensor = torch.tensor(x_context_scaled, dtype=torch.float32)
 
 # Reshape tensors for LSTM input
-sequence_length = 1
+# sequence_length = 1
 x_time_tensor = x_time_tensor.unsqueeze(0)  # Add batch dimension
 x_context_tensor = x_context_tensor.unsqueeze(0)  # Add batch dimension
 
