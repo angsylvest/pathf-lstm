@@ -1,7 +1,4 @@
-'''
-Generic LSTM + usage example (would be broken down into multiple files eventually)
 
-'''
 import torch
 import torch.nn as nn
 import torch.optim as optim
