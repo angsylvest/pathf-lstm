@@ -1,3 +1,3 @@
-time_stamp,agent_id,current_position_x,current_position_y,goal_position_x,goal_position_y
-2024-02-07 08:00:00,1,5,3,10,15
-2024-02-07 08:00:00,2,8,10,20,25
+time_stamp,env_input
+2024-02-07 08:00:00,"[[1, 2, 0], [2, 2, 2], [-1, 2, 2]]"
+2024-02-07 08:00:00,"[[-1, 2, 0], [2, 2, 2], [1, 2, 2]]"
