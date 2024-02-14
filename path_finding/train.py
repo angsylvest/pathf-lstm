@@ -15,7 +15,7 @@ def train(sequence_length):
     x_time_df['env_input'] = x_time_df['env_input'].apply(lambda x: np.array(eval(x)))
     y_df['next_env'] = y_df[['val_x', 'val_y']].apply(lambda x: np.array(x), axis=1)
 
-    # Merge dataframes on Timestamp
+    # Merge dataframes on Integer time step
     merged_df = pd.merge(x_time_df, y_df, on='time_stamp')
 
     # Convert input of nested list to nested list 
