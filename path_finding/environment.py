@@ -6,6 +6,8 @@ class Environment:
         self.height = height 
 
         self.env = self.update_edges_dict(height, width, []) # y, x
+        self.grid_rep = []
+        self.graph_rep = {}
 
     # generates dictionary of edges for graph of size (x_dim, y_dim)
     def update_edges_dict(self, x_dim, y_dim, prohibited_spots):
@@ -27,7 +29,7 @@ class Environment:
 
                 edges_dict[current_pose] = neighbors
 
-        return edges_dict
+        self.graph_rep = edges_dict
 
     def grid_representation(self, curr_pos = (0,0), goal_pos = (1,1), taken_pos = []):
         # will be input for lstm 
@@ -37,11 +39,11 @@ class Environment:
         array = np.full((self.height, self.width), 2)
         array[curr_y, curr_x] = 1
         array[goal_y, goal_x] = -1
-        for pos in taken_pos:
-            pos_x, pos_y = pos
+        for (posx, posy) in taken_pos:
+            pos_x, pos_y = (posx, posy)
             array[pos_y, pos_x] = 0
 
-        return array
+        self.grid_rep = array
 
 
 

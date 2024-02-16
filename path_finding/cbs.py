@@ -1,6 +1,14 @@
 import heapq
 from typing import List, Tuple, Dict, Union
 import pandas as pd 
+import csv 
+import numpy as np 
+
+from environment import Environment
+
+# we are assuming that csv already has correct csv label 
+dataset_x_path = "dataset/x_time_train_test.csv"
+dataset_y_path = "dataset/y_train_test.csv"
 
 class Node:
     def __init__(self, paths, cost):
@@ -19,10 +27,20 @@ def heuristic(current, goal):
 
 
 class CBS: 
-    def __init__(self, env, starting_pos, goal_pos):
-        self.env = env
-        self.starting_pos = starting_pos 
-        self.goal_pos = goal_pos
+    def __init__(self, starting_poses, goal_poses):
+        self.starting_poses = starting_poses
+        self.goal_poses = goal_poses
+        self.env_size = 5 
+
+        self.environments = {}  # TODO: each agent should have own env with pos of other agents
+        for i in range(len(goal_poses)):
+
+            # creates separate env (no consideration of other agents yet)
+            self.environments[i] = Environment(self.env_size, self.env_size)
+            self.environments[i].grid_representation(starting_poses[i], goal_poses[i])
+
+            # updated graph rep of env (initially no prohibitee nodes)
+            self.environments[i].update_edges_dict(self.env_size, self.env_size, [])
 
 
     def is_conflict_free(self, paths):
@@ -78,7 +96,11 @@ class CBS:
         raise ValueError('Could not find path that satisfies constraints')
 
 
-    def cbs(self, graph, agents, goal_positions) -> Union[Dict[str, List[Tuple[int, int]]], None]:
+    def cbs(self) -> Union[Dict[str, List[Tuple[int, int]]], None]:
+        graph = self.environments[0].graph_rep
+        agents = self.starting_poses
+        goal_positions = self.goal_poses
+        
         open_set = [Node({}, 0)]  # Start with an empty set of paths
         closed_set = set()
 
@@ -96,7 +118,6 @@ class CBS:
 
         problem_pos, conflict_free = self.is_conflict_free(paths)
 
-
         while not conflict_free and any(len(problem_pos[agent]) > 0 for agent in agents):  # While there is a conflict
             # Identify conflict nodes + remove and recalculate solution
             for agent, initial_pose in agents.items():
@@ -111,8 +132,6 @@ class CBS:
                 selected_pos = problem_pos[agent].pop()
                 conflict_positions[agent].append(selected_pos)
 
-                # print(f"Agent path {agent_path} with problematic pos at {selected_pos} and conflict pos {conflict_positions}")
-
                 # print(f'path arguments initial pose: {initial_pose} with goal position {goal_positions[agent]} and conflict positions {conflict_positions[agent]} in graph {graph}')
                 path = self.find_path(graph, initial_pose, goal_positions[agent], conflict_positions[agent], [])
                 # print(f"Updated generated path for agent {agent} with initial pos {initial_pose} with goal {goal_positions[agent]} and occupied pos {conflict_positions[agent]}\nPath: {path}")
@@ -123,59 +142,67 @@ class CBS:
                 problem_pos, conflict_free = self.is_conflict_free(paths)
 
         return paths if conflict_free else None
-
-
-# def update_env(num_rows, num_cols, agent_positions, goal_positions): 
-#     # Initialize an empty grid with tuples representing each position
-#     grid = [[(0, 0, 0, 0)] * num_cols for _ in range(num_rows)]
     
-#     # Update the grid with current positions and goal positions
-#     for i, (agent_pos, goal_pos) in enumerate(zip(agent_positions, goal_positions)):
-#         row, col = agent_pos
-#         goal_row, goal_col = goal_pos
-        
-#         # Update the grid with the agent's current position and goal position
-#         grid[row][col] = (row, col, goal_row, goal_col)
+    def generate_seq_dataset(self, cbs_output):
+
+        max_length = max(len(path) for path in cbs_output.values())
+        curr_index = 0 
+
+        while curr_index < max_length:
+            
+            for a in cbs_output: 
+                other_poses = []
+
+                # for each agent, will update env and subsequent pos 
+                if curr_index <= len(cbs_output[a]) - 1:
+                    curr_agent_pos = cbs_output[a][curr_index]
+                else: 
+                    curr_agent_pos = cbs_output[a][-1]
+                cur_agent_goal = self.goal_poses[a]
+
+                for a_other in cbs_output: 
+                    if a != a_other:
+                        if curr_index <= len(cbs_output[a]) - 1: 
+                            other_agent_pos = cbs_output[a][curr_index]
+                        else: 
+                            other_agent_pos = cbs_output[a][len(cbs_output[a]) - 1]
+                        other_poses.append(other_agent_pos)
+
+                # update input rep  
+                self.environments[a].grid_representation(curr_agent_pos, cur_agent_goal, other_poses)
+                input_rep = self.environments[a].grid_rep
+                input_rep = np.array2string(input_rep, separator=',').replace('\n', '').replace('  ', ' ')
+
+                if curr_index <= len(cbs_output[a]) - 2: 
+                    next = curr_index + 1
+                else: 
+                    next = len(cbs_output[a]) - 2 # just stay at current spot once reach goal 
+                expected_outx, expected_outy = cbs_output[a][next]
+
+                x_row = {'time_stamp': curr_index, 'env_input': input_rep}
+                y_row = {'time_stamp': curr_index, 'val_x': expected_outx, 'val_y': expected_outy}
+
+                # update x_time_train.csv
+                with open(dataset_x_path, mode='a', newline='') as file:
+                    writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
+                    writer.writerow(x_row)
+
+                # update y_train.csv
+                with open(dataset_y_path, mode='a', newline='') as file:
+                    writer = csv.DictWriter(file, fieldnames=['time_stamp','val_x','val_y'])
+                    writer.writerow(y_row)
+
+            curr_index += 1
+
+
+def main():
+    starting_pose = {0: (0, 0), 1: (1, 0)} 
+    goal_pos = {0: (2, 1), 1: (2, 2)}
+    cbs = CBS(starting_pose, goal_pos)
+    paths = cbs.cbs()
+    cbs.generate_seq_dataset(paths)
+
+    # now want to translate to multiple diff environments that can be saved 
+
+main()
     
-#     return grid
-
-
-# def add_to_dataset(env, paths, goal_positions): # env is initially just edge representation 
-#     # will be initially just one env but will create relevant rows for each agent to be added to dataset
-#     env_representation = update_env(5, 5, [path[0] for path in paths.values()], [goal_position for goal_position in goal_positions.values()])
-
-#     max_length = max(len(value_list) for value_list in paths.values())
-
-#     for i in range(1, max_length): 
-#         for agent in paths.keys():
-#             agent_id = agent 
-
-#             if len(paths[agent]) > i: 
-#                 current_position_x, current_position_y = paths[agent][i-1]
-#                 next_position_x, next_position_y = paths[agent][i]
-                
-#             goal_position_x, goal_position_y = goal_positions[agent]
-
-#             x_context_row = {"time_stamp": i,"env_representation": env_representation}
-#             x_time_row = {"time_stamp": i,"agent_id": agent,"current_position_x": current_position_x,"current_position_y": current_position_y,"goal_position_x": goal_position_x ,"goal_position_y": goal_position_y}
-#             y_train_row = {"time_stamp": i,"agent_id": agent, "next_position_x": next_position_x,"next_position_y": next_position_y}
-
-#             env_representation = update_env(5, 5, [path[i] for path in paths.values()], [goal_position for goal_position in goal_positions.values()])
-
-#             # append to dataset 
-
-# graph = generate_edges_dict(5, 5)
-
-# initial_positions = {0: (0, 0), 1: (1, 0)}  # Adjust initial positions as needed
-# goal_positions = {0: (2, 1), 1: (2, 2)}  # Adjust goal positions as needed
-
-# agents = {0: initial_positions[0], 1: initial_positions[1]}
-
-# # path1 = find_path(graph, initial_positions[0], goal_positions[0], [], [])
-# # print(path1)
-# # path2 = find_path(graph, initial_positions[1], goal_positions[1], [], [])
-# # print(path2)
-# print('Output after running CBS')
-# paths = cbs(graph, agents, goal_positions)
-# print(paths)
-
