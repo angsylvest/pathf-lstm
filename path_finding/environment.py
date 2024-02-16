@@ -44,11 +44,3 @@ class Environment:
             array[pos_y, pos_x] = 0
 
         self.grid_rep = array
-
-
-
-def main():
-    env = Environment(5,5)
-    print(env.grid_representation())
-
-main()

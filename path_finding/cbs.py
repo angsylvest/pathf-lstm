@@ -10,6 +10,18 @@ from environment import Environment
 dataset_x_path = "dataset/x_time_train_test.csv"
 dataset_y_path = "dataset/y_train_test.csv"
 
+# update x_time_train.csv
+with open(dataset_x_path, mode='w', newline='') as file:
+    writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
+    if file.tell() == 0:
+        writer.writeheader()  # Write the header row if the file is empty
+
+# update y_train.csv
+with open(dataset_y_path, mode='w', newline='') as file:
+    writer = csv.DictWriter(file, fieldnames=['time_stamp','val_x','val_y'])
+    if file.tell() == 0:
+        writer.writeheader()  # Write the header row if the file is empty
+
 class Node:
     def __init__(self, paths, cost):
         self.paths = paths  # Dictionary mapping agent ID to its path
@@ -27,10 +39,10 @@ def heuristic(current, goal):
 
 
 class CBS: 
-    def __init__(self, starting_poses, goal_poses):
+    def __init__(self, starting_poses, goal_poses, env_size):
         self.starting_poses = starting_poses
         self.goal_poses = goal_poses
-        self.env_size = 5 
+        self.env_size = env_size 
 
         self.environments = {}  # TODO: each agent should have own env with pos of other agents
         for i in range(len(goal_poses)):
@@ -183,12 +195,12 @@ class CBS:
                 y_row = {'time_stamp': curr_index, 'val_x': expected_outx, 'val_y': expected_outy}
 
                 # update x_time_train.csv
-                with open(dataset_x_path, mode='a', newline='') as file:
+                with open(dataset_x_path, mode='a+', newline='') as file:
                     writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
                     writer.writerow(x_row)
 
                 # update y_train.csv
-                with open(dataset_y_path, mode='a', newline='') as file:
+                with open(dataset_y_path, mode='a+', newline='') as file:
                     writer = csv.DictWriter(file, fieldnames=['time_stamp','val_x','val_y'])
                     writer.writerow(y_row)
 
@@ -198,7 +210,7 @@ class CBS:
 def main():
     starting_pose = {0: (0, 0), 1: (1, 0)} 
     goal_pos = {0: (2, 1), 1: (2, 2)}
-    cbs = CBS(starting_pose, goal_pos)
+    cbs = CBS(starting_pose, goal_pos, 5)
     paths = cbs.cbs()
     cbs.generate_seq_dataset(paths)
 
