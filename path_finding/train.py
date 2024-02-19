@@ -8,8 +8,8 @@ from lstm import CustomLSTMModel
 
 def train(sequence_length): 
     # Load CSV files
-    x_time_df = pd.read_csv('dataset/x_time_train.csv')
-    y_df = pd.read_csv('dataset/y_train.csv')
+    x_time_df = pd.read_csv('dataset/x_time_train_test.csv')
+    y_df = pd.read_csv('dataset/y_train_test.csv')
 
     # Convert grid representations to numpy arrays
     x_time_df['env_input'] = x_time_df['env_input'].apply(lambda x: np.array(eval(x)))
