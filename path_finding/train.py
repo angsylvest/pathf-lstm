@@ -46,7 +46,8 @@ def train(sequence_length):
     model = CustomLSTMModel(input_size=input_size, lstm_hidden_size=lstm_hidden_size)
 
     # Define loss function and optimizer
-    criterion = nn.CrossEntropyLoss()
+    # criterion = nn.CrossEntropyLoss()
+    criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Training loop

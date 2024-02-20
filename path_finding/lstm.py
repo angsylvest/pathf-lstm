@@ -25,4 +25,7 @@ class CustomLSTMModel(nn.Module):
         # Fully connected layer for final output
         output = self.fc(lstm_out[:, -1, :])
 
+        # Apply rounding activation
+        output = round_to_grid(output)
+
         return output
