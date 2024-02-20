@@ -159,8 +159,10 @@ class CBS:
 
         max_length = max(len(path) for path in cbs_output.values())
         curr_index = 0 
+        goal_poses = [pos[-1] for pos in cbs_output.values()]
 
         while curr_index < max_length:
+
             
             for a in cbs_output: 
                 other_poses = []
@@ -174,14 +176,15 @@ class CBS:
 
                 for a_other in cbs_output: 
                     if a != a_other:
-                        if curr_index <= len(cbs_output[a]) - 1: 
-                            other_agent_pos = cbs_output[a][curr_index]
+                        if curr_index <= len(cbs_output[a_other]) - 1: 
+                            other_agent_pos = cbs_output[a_other][curr_index]
                         else: 
-                            other_agent_pos = cbs_output[a][len(cbs_output[a]) - 1]
+                            other_agent_pos = cbs_output[a_other][-1]
                         other_poses.append(other_agent_pos)
+                print(f'updated other poses: {other_poses}')
 
                 # update input rep  
-                self.environments[a].grid_representation(curr_agent_pos, cur_agent_goal, other_poses)
+                self.environments[a].grid_representation(curr_agent_pos, cur_agent_goal, other_poses, goal_poses)
                 input_rep = self.environments[a].grid_rep
                 input_rep = np.array2string(input_rep, separator=',').replace('\n', '').replace('  ', ' ')
 
@@ -204,14 +207,16 @@ class CBS:
                     writer = csv.DictWriter(file, fieldnames=['time_stamp','val_x','val_y'])
                     writer.writerow(y_row)
 
+
             curr_index += 1
 
 
 def main():
-    starting_pose = {0: (0, 0), 1: (1, 0)} 
-    goal_pos = {0: (2, 1), 1: (2, 2)}
+    starting_pose = {0: (0, 0), 1: (1, 0), 2: (1,3)} 
+    goal_pos = {0: (2, 1), 1: (2, 2), 2: (3,3)}
     cbs = CBS(starting_pose, goal_pos, 5)
     paths = cbs.cbs()
+    print(f'paths: {paths}')
     cbs.generate_seq_dataset(paths)
 
     # now want to translate to multiple diff environments that can be saved 
