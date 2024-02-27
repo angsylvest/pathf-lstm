@@ -64,6 +64,26 @@ def train(sequence_length):
     # Save the trained model
     torch.save(model.state_dict(), 'lstm.pth')
 
+    # testing output here ---
+
+    # model = CustomLSTMModel(input_size=input_size, lstm_hidden_size=lstm_hidden_size)
+    # model.load_state_dict(torch.load('lstm.pth'))
+    # model.eval()
+
+    # # Prepare a sample input tensor (assuming it's similar to x_time_tensor)
+    # sample_input = x_time_tensor[0].unsqueeze(0)  # Select the first sample and add a batch dimension
+
+    # # Get the output predictions
+    # with torch.no_grad():
+    #     output = model(sample_input)
+
+    # # Get the index of the maximum value in the output tensor
+    # max_index = torch.argmax(output, dim=1)
+
+    # # Print the index
+    # print(max_index)
+
+
 # only considers state of env for one timestep
 train(sequence_length=1)  # Adjust sequence_length as needed
 
