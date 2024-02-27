@@ -10,6 +10,9 @@ from environment import Environment
 dataset_x_path = "dataset/x_time_train_test.csv"
 dataset_y_path = "dataset/y_train_test.csv"
 
+# dictionary mapping actions to movements
+action_to_movement = {0: (1, 0), 1: (-1, 0), 2: (0, 1), 3: (0, -1)}
+
 # update x_time_train.csv
 with open(dataset_x_path, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
@@ -18,7 +21,7 @@ with open(dataset_x_path, mode='w', newline='') as file:
 
 # update y_train.csv
 with open(dataset_y_path, mode='w', newline='') as file:
-    writer = csv.DictWriter(file, fieldnames=['time_stamp','val_x','val_y'])
+    writer = csv.DictWriter(file, fieldnames=['time_stamp','action'])
     if file.tell() == 0:
         writer.writeheader()  # Write the header row if the file is empty
 
@@ -192,10 +195,12 @@ class CBS:
                     next = curr_index + 1
                 else: 
                     next = len(cbs_output[a]) - 2 # just stay at current spot once reach goal 
-                expected_outx, expected_outy = cbs_output[a][next]
+                
+                action = self.calculate_action(curr_agent_pos, cbs_output[a][next])
+                # expected_outx, expected_outy = cbs_output[a][next]
 
                 x_row = {'time_stamp': curr_index, 'env_input': input_rep}
-                y_row = {'time_stamp': curr_index, 'val_x': expected_outx, 'val_y': expected_outy}
+                y_row = {'time_stamp': curr_index, 'action': action}
 
                 # update x_time_train.csv
                 with open(dataset_x_path, mode='a+', newline='') as file:
@@ -204,11 +209,17 @@ class CBS:
 
                 # update y_train.csv
                 with open(dataset_y_path, mode='a+', newline='') as file:
-                    writer = csv.DictWriter(file, fieldnames=['time_stamp','val_x','val_y'])
+                    writer = csv.DictWriter(file, fieldnames=['time_stamp','action'])
                     writer.writerow(y_row)
 
 
             curr_index += 1
+
+    def calculate_action(self, curr_pos, next_pos):
+        # Assuming movements are limited to up, down, left, and right
+        diff = tuple(map(lambda x, y: y - x, curr_pos, next_pos))
+        action_to_movement = {(0, 1): 0, (0, -1): 1, (1, 0): 2, (-1, 0): 3}
+        return action_to_movement.get(diff, -1)  # Default to -1 if no valid action found
 
 
 def main():
