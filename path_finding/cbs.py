@@ -8,6 +8,7 @@ from environment import Environment
 
 # we are assuming that csv already has correct csv label 
 dataset_x_path = "dataset/x_time_train_test.csv"
+dataset_x_others = "dataset/x_time_train_other_agents.csv"
 dataset_y_path = "dataset/y_train_test.csv"
 
 # dictionary mapping actions to movements
@@ -15,6 +16,12 @@ action_to_movement = {0: (1, 0), 1: (-1, 0), 2: (0, 1), 3: (0, -1)}
 
 # update x_time_train.csv
 with open(dataset_x_path, mode='w', newline='') as file:
+    writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
+    if file.tell() == 0:
+        writer.writeheader()  # Write the header row if the file is empty
+
+# update x_time_train.csv
+with open(dataset_x_others, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
     if file.tell() == 0:
         writer.writeheader()  # Write the header row if the file is empty
@@ -169,7 +176,7 @@ class CBS:
 
         while curr_index < max_length:
 
-            
+            print(f'curr index {curr_index}')
             for a in cbs_output: 
                 other_poses = []
 
@@ -187,7 +194,6 @@ class CBS:
                         else: 
                             other_agent_pos = cbs_output[a_other][-1]
                         other_poses.append(other_agent_pos)
-                print(f'updated other poses: {other_poses}')
 
                 # update input rep  
                 self.environments[a].grid_representation(curr_agent_pos, cur_agent_goal, other_poses, goal_poses)
@@ -216,14 +222,20 @@ class CBS:
                     writer = csv.DictWriter(file, fieldnames=['time_stamp','action'])
                     writer.writerow(y_row)
 
-            # once action updated for each agent, want to add concatenation of other agents
             index = 0 
             for a in cbs_output: 
                 input_rep = np.array(self.environments[a].grid_rep)
                 self.other_envs[:, :, index] = input_rep
+                input = self.other_envs
+                x_others_row = {'time_stamp': curr_index, 'env_input': input}
+
+                # update x_time_train.csv
+                with open(dataset_x_others, mode='a+', newline='') as file:
+                    writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
+                    writer.writerow(x_others_row)
+
                 index += 1 
 
-            print(f'other concatenated env reps: {self.other_envs}')
             curr_index += 1
 
     def calculate_action(self, curr_pos, next_pos):
