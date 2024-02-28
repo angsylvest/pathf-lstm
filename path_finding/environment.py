@@ -47,7 +47,7 @@ class Environment:
             (pos_x, pos_y) = taken_pos[i]
             (goal_x, goal_y) = other_goals[i]
 
-            array[pos_y, pos_x] = (i + 2) 
-            array[goal_x, goal_y] = (i + 2)*-1
+            array[pos_y, pos_x] = 0
+            # array[goal_x, goal_y] = (i + 2)*-1
 
         self.grid_rep = array

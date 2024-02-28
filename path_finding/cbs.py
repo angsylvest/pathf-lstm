@@ -46,8 +46,11 @@ class CBS:
         self.starting_poses = starting_poses
         self.goal_poses = goal_poses
         self.env_size = env_size 
+        self.max_num_agents = 20
 
         self.environments = {}  # TODO: each agent should have own env with pos of other agents
+        self.other_envs = np.zeros((self.env_size, self.env_size, self.max_num_agents-1), dtype=int)
+
         for i in range(len(goal_poses)):
 
             # creates separate env (no consideration of other agents yet)
@@ -189,6 +192,7 @@ class CBS:
                 # update input rep  
                 self.environments[a].grid_representation(curr_agent_pos, cur_agent_goal, other_poses, goal_poses)
                 input_rep = self.environments[a].grid_rep
+
                 input_rep = np.array2string(input_rep, separator=',').replace('\n', '').replace('  ', ' ')
 
                 if curr_index <= len(cbs_output[a]) - 2: 
@@ -212,7 +216,14 @@ class CBS:
                     writer = csv.DictWriter(file, fieldnames=['time_stamp','action'])
                     writer.writerow(y_row)
 
+            # once action updated for each agent, want to add concatenation of other agents
+            index = 0 
+            for a in cbs_output: 
+                input_rep = np.array(self.environments[a].grid_rep)
+                self.other_envs[:, :, index] = input_rep
+                index += 1 
 
+            print(f'other concatenated env reps: {self.other_envs}')
             curr_index += 1
 
     def calculate_action(self, curr_pos, next_pos):
