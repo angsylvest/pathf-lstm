@@ -22,7 +22,7 @@ with open(dataset_x_path, mode='w', newline='') as file:
 
 # update x_time_train.csv
 with open(dataset_x_others, mode='w', newline='') as file:
-    writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
+    writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input_others'])
     if file.tell() == 0:
         writer.writeheader()  # Write the header row if the file is empty
 
@@ -53,7 +53,7 @@ class CBS:
         self.starting_poses = starting_poses
         self.goal_poses = goal_poses
         self.env_size = env_size 
-        self.max_num_agents = 20
+        self.max_num_agents = 5
 
         self.environments = {}  # TODO: each agent should have own env with pos of other agents
         self.other_envs = np.zeros((self.env_size, self.env_size, self.max_num_agents-1), dtype=int)
@@ -197,7 +197,7 @@ class CBS:
 
                 # update input rep  
                 self.environments[a].grid_representation(curr_agent_pos, cur_agent_goal, other_poses, goal_poses)
-                input_rep = self.environments[a].grid_rep
+                input_rep = np.array(self.environments[a].grid_rep)
 
                 input_rep = np.array2string(input_rep, separator=',').replace('\n', '').replace('  ', ' ')
 
@@ -227,11 +227,12 @@ class CBS:
                 input_rep = np.array(self.environments[a].grid_rep)
                 self.other_envs[:, :, index] = input_rep
                 input = self.other_envs
-                x_others_row = {'time_stamp': curr_index, 'env_input': input}
+                input = np.array2string(input, separator=',').replace('\n', '').replace('  ', ' ')
+                x_others_row = {'time_stamp': curr_index, 'env_input_others': input}
 
                 # update x_time_train.csv
                 with open(dataset_x_others, mode='a+', newline='') as file:
-                    writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
+                    writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input_others'])
                     writer.writerow(x_others_row)
 
                 index += 1 
