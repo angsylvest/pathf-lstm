@@ -53,7 +53,7 @@ class CBS:
         self.starting_poses = starting_poses
         self.goal_poses = goal_poses
         self.env_size = env_size 
-        self.max_num_agents = 5
+        self.max_num_agents = 5 # tunable 
 
         self.environments = {}  # TODO: each agent should have own env with pos of other agents
         self.other_envs = np.zeros((self.env_size, self.env_size, self.max_num_agents-1), dtype=int)
@@ -249,7 +249,8 @@ class CBS:
 def main():
     starting_pose = {0: (0, 0), 1: (1, 0), 2: (1,3)} 
     goal_pos = {0: (2, 1), 1: (2, 2), 2: (3,3)}
-    cbs = CBS(starting_pose, goal_pos, 5)
+    max_dim = 5 
+    cbs = CBS(starting_pose, goal_pos, max_dim)
     paths = cbs.cbs()
     print(f'paths: {paths}')
     cbs.generate_seq_dataset(paths)
