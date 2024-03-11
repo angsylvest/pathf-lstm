@@ -123,6 +123,8 @@ class CBS:
 
     def cbs(self) -> Union[Dict[str, List[Tuple[int, int]]], None]:
         graph = self.environments[0].graph_rep
+        print(f'graph rep: {graph}')
+
         agents = self.starting_poses
         goal_positions = self.goal_poses
         
