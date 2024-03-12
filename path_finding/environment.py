@@ -31,23 +31,25 @@ class Environment:
 
         self.graph_rep = edges_dict
 
-    def grid_representation(self, curr_pos = (0,0), goal_pos = (1,1), taken_pos = [], goal_poses = []):
+    def grid_representation(self, curr_pos = (), goal_pos = (), taken_pos = [], goal_poses = []):
         # will be input for lstm 
-        curr_x, curr_y = curr_pos
-        goal_x, goal_y = goal_pos
 
         array = np.full((self.height, self.width), 0)
-        array[curr_y, curr_x] = 1
-        array[goal_y, goal_x] = -1
 
-        other_goals = [x for x in goal_poses if x != goal_pos]
+        if len(tuple) > 0: 
+            curr_x, curr_y = curr_pos
+            goal_x, goal_y = goal_pos
+            array[curr_y, curr_x] = 1
+            array[goal_y, goal_x] = -1
 
-        for i in range(len(taken_pos)): 
+            other_goals = [x for x in goal_poses if x != goal_pos]
 
-            (pos_x, pos_y) = taken_pos[i]
-            (goal_x, goal_y) = other_goals[i]
+            for i in range(len(taken_pos)): 
 
-            array[pos_y, pos_x] = 0
-            # array[goal_x, goal_y] = (i + 2)*-1
+                (pos_x, pos_y) = taken_pos[i]
+                (goal_x, goal_y) = other_goals[i]
+
+                array[pos_y, pos_x] = 0
+                # array[goal_x, goal_y] = (i + 2)*-1
 
         self.grid_rep = array

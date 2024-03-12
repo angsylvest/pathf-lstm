@@ -14,6 +14,10 @@ dataset_y_path = "dataset/y_train_test.csv"
 # dictionary mapping actions to movements
 action_to_movement = {0: (1, 0), 1: (-1, 0), 2: (0, 1), 3: (0, -1)}
 
+# GLOBAL PADDING SIZE 
+_MAXIMUM_ENVIRONMENT = 20
+_MAX_AGENT = 20 # channel count 
+
 # update x_time_train.csv
 with open(dataset_x_path, mode='w', newline='') as file:
     writer = csv.DictWriter(file, fieldnames=['time_stamp', 'env_input'])
@@ -49,7 +53,7 @@ def heuristic(current, goal):
 
 
 class CBS: 
-    def __init__(self, starting_poses, goal_poses, env_size):
+    def __init__(self, starting_poses, goal_poses, env_size=_MAXIMUM_ENVIRONMENT):
         self.starting_poses = starting_poses
         self.goal_poses = goal_poses
         self.env_size = env_size 
@@ -58,14 +62,24 @@ class CBS:
         self.environments = {}  # TODO: each agent should have own env with pos of other agents
         self.other_envs = np.zeros((self.env_size, self.env_size, self.max_num_agents-1), dtype=int)
 
-        for i in range(len(goal_poses)):
+        for i in range(_MAX_AGENT):
 
-            # creates separate env (no consideration of other agents yet)
-            self.environments[i] = Environment(self.env_size, self.env_size)
-            self.environments[i].grid_representation(starting_poses[i], goal_poses[i])
+            if i > len(starting_poses) - 1: 
+                # creates separate env (no consideration of other agents yet)
+                self.environments[i] = Environment(self.env_size, self.env_size)
+                self.environments[i].grid_representation([], [])
 
-            # updated graph rep of env (initially no prohibitee nodes)
-            self.environments[i].update_edges_dict(self.env_size, self.env_size, [])
+                # updated graph rep of env (initially no prohibitee nodes)
+                self.environments[i].update_edges_dict(self.env_size, self.env_size, [])
+
+
+            else: 
+                # creates separate env (no consideration of other agents yet)
+                self.environments[i] = Environment(self.env_size, self.env_size)
+                self.environments[i].grid_representation(starting_poses[i], goal_poses[i])
+
+                # updated graph rep of env (initially no prohibitee nodes)
+                self.environments[i].update_edges_dict(self.env_size, self.env_size, [])
 
 
     def is_conflict_free(self, paths):
